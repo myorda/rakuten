@@ -36,11 +36,17 @@ public class AutomationSteps {
     private final By goToMyDataButtonLocator = By.id("go_to_next_step");
     private final By paymentMethodsLocator = By.id("content");
     private final By clientAddressLocator = By.id("top-address");
+    private final By loginEmailLocator = By.name("loginEmail");
+    private final By loginPassLocator = By.name("loginPassword");
+    private final By submitLoginLocator = By.name("submit");
+    private final By accountHeaderLocator = By.className("acc-header");
+    private final By wrongCredentialsMessageLocator = By.className("message-error");
 
 
 
     private WebDriver driver;
-    private String rakutenLoginPage = "https://www.rakuten.de/";
+    private String rakutenLoginPage = "https://www.rakuten.de";
+    private String rakutenCustomerAccountPage = "https://www.rakuten.de/kundenkonto";
 
 
     @Before
@@ -57,11 +63,12 @@ public class AutomationSteps {
 
     @After
     public void tearDown() {
+        driver.close();
         driver.quit();
     }
 
 
-    @Given("^I am on rakuten homepage$")
+    @Given("^I am on Rakuten homepage$")
     public void iAmOnRakutenHomepage() {
         driver.navigate().to(rakutenLoginPage);
         WebElement searchBar = driver.findElement(searchBarLocator);
@@ -128,4 +135,35 @@ public class AutomationSteps {
         WebElement paymentMethods = driver.findElement(paymentMethodsLocator);
         assertTrue(paymentMethods.isDisplayed());
     }
+
+    @Given("^I am on Rakuten customer account page$")
+    public void iAmOnRakutenCustomerAccountPage() {
+        driver.navigate().to(rakutenCustomerAccountPage);
+        WebElement submitBtn = driver.findElement(submitLoginLocator);
+        assertTrue("Rakuten.de Customer Account page is not available", submitBtn.isDisplayed());
+    }
+
+    @When("^I login with \"([^\"]*)\" and \"([^\"]*)\"$")
+    public void iLoginWithAnd(String username, String password) {
+        WebElement loginEmail = driver.findElement(loginEmailLocator);
+        loginEmail.sendKeys(username);
+        WebElement loginPassword = driver.findElement(loginPassLocator);
+        loginPassword.sendKeys(password);
+        WebElement loginBtn = driver.findElement(submitLoginLocator);
+        loginBtn.click();
+    }
+
+    @Then("^I should be successfully logged in$")
+    public void iShouldBeSuccessfullyLoggedIn() {
+        WebElement accountHeader = driver.findElement(accountHeaderLocator);
+        assertTrue("The user is not logged in properly", accountHeader.isDisplayed());
+    }
+
+    @Then("^user is not logged in and error message \"([^\"]*)\" is displayed$")
+    public void userIsNotLoggedInAndErrorMessageIsDisplayed(String message) {
+        WebElement wrongCredentialsMessage = driver.findElement(wrongCredentialsMessageLocator);
+        assertEquals("Validation Message for login is not shown properly",
+                message, wrongCredentialsMessage.getText().trim());
+    }
+
 }
